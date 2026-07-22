@@ -1,0 +1,90 @@
+# C4, уровень 2 — Containers
+
+Читатель — актор с уровня Context, а не контейнер. CDN показан на границе
+платформы как кэш готовых страниц — через него проходит весь путь чтения.
+
+## Диаграмма
+
+```mermaid
+graph TB
+    reader["Читатель / поисковый робот — актор"]
+    author["Автор — актор"]
+
+    cdn["CDN, напр. CloudFront — edge-кэш<br/>готовые страницы, ревалидация по TTL"]
+
+    subgraph platform["SSR-платформа блога"]
+        ssr["SSR Service — приложение<br/>серверный рендеринг HTML, stateless, N копий"]
+        content["Content service — приложение<br/>статьи, их публикация и отдача по API"]
+        authApi["Auth API — приложение<br/>аутентификация, профиль"]
+        subs["Subscription service — приложение<br/>подписки на авторов и лента"]
+        contentDb["Content DB — база данных<br/>статьи, разделы, метаданные"]
+        authDb["Auth DB — база данных<br/>учётные записи"]
+        subsDb["Subscription DB — база данных<br/>подписки и лента"]
+    end
+
+    subgraph externals["Внешние системы"]
+        notify["Сервис уведомлений<br/>push и email подписчикам"]
+        media["Медиа-хранилище — S3<br/>картинки статей, раздача через CDN"]
+    end
+
+    reader -->|"HTTPS"| cdn
+    cdn -->|"если нет в кэше"| ssr
+    ssr -->|"запрос контента, REST"| content
+    ssr -->|"проверка сессии, REST"| authApi
+    ssr -->|"лента, REST"| subs
+    content -->|"SQL"| contentDb
+    authApi -->|"SQL"| authDb
+    subs -->|"SQL"| subsDb
+    author -->|"публикация статьи"| content
+    content -->|"событие публикации"| subs
+    subs -->|"команда уведомить подписчиков"| notify
+    content -->|"загрузка картинок, S3 API"| media
+
+    classDef container fill:#438dd5,stroke:#2e6295,color:#ffffff;
+    classDef store fill:#2e7d32,stroke:#1b4d20,color:#ffffff;
+    classDef infra fill:#7b8a97,stroke:#55606b,color:#ffffff;
+    classDef external fill:#999999,stroke:#6b6b6b,color:#ffffff;
+    class ssr,content,authApi,subs container;
+    class contentDb,authDb,subsDb store;
+    class cdn infra;
+    class reader,author,notify,media external;
+```
+
+## Контейнеры и связанные с ними требования
+
+Путь запроса идёт сверху вниз, и по дороге видно, где живёт какой сценарий
+качества.
+
+**CDN** — вход в систему и кэш готовых страниц. Если страница есть в кэше, origin
+не вызывается вообще — это TTFB ≤ 200 мс из
+[S1](../02-utility-tree.md#s1-отдача-страницы-статьи-под-нагрузкой--h-m) и
+поглощение всплесков из
+[S3](../02-utility-tree.md#s3-всплеск-трафика-в-10-раз--m-m). При отказе origin CDN
+отдаёт ранее сохранённую копию — это graceful degradation из
+[S2](../02-utility-tree.md#s2-отказ-content-service-отдаём-из-кэша--h-m); конкретный
+механизм — вопрос следующих модулей.
+
+**SSR Service** — приложение серверного рендеринга. Если нужной страницы в кэше
+нет, собирает её из Content service и Auth API и отдаёт с заголовками кэширования
+(Cache-Control), которые управляют edge-кэшем и ревалидацией. Приложение
+stateless — состояние между запросами не хранит, поэтому масштабируется
+горизонтально (S3).
+
+**Content service + Content DB** — единый владелец контента: автор через него
+создаёт и публикует статьи, а SSR Service читает их по API. Один сервис — одна
+база, общего хранилища с другими сервисами нет. Как опубликованная статья доходит
+до читателей — вопрос реализации; требование по сроку — сценарий
+[S4](../02-utility-tree.md#s4-актуальность-опубликованной-статьи--m-l) (≤ 30 минут),
+компромисс — в [`../03-tradeoffs.md`](../03-tradeoffs.md). Границы сервисов и
+владение данными разобраны в [`../04-decomposition.md`](../04-decomposition.md).
+
+**Auth API + Auth DB** — аутентификация и профиль читателя.
+
+**Subscription service + Subscription DB** — подписки читателей на авторов и
+персональная лента; SSR Service берёт ленту по API.
+
+**Внешние системы.** При публикации Content service шлёт событие «статья
+опубликована» в Subscription service; тот разворачивает подписчиков и командует
+**Сервису уведомлений** разослать push и email. Картинки статей Content service
+загружает в **Медиа-хранилище** (S3); в своей БД платформа их не держит, а
+читателям они раздаются через CDN.
