@@ -8,4 +8,4 @@
 | Доступность | runtime | Reliability → Availability | D4 |
 | Масштабируемость | runtime | Performance Efficiency → Capacity | D1 |
 | Функциональная пригодность | runtime | Functional Suitability → Completeness, Correctness | D2, D3 |
-| Модифицируемость | dev | Maintainability → Modifiability | новый источник контента или новый тип страницы без переделки SSR Service и существующих API |
+| Модифицируемость | dev | Maintainability → Modifiability | новый источник контента или новый тип страницы без переделки SSR service и существующих API |
