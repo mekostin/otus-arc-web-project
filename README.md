@@ -34,6 +34,12 @@
 |----------|------|
 | Декомпозиция на сервисы (возможности, границы, cohesion/coupling, DIP) | [`docs/04-decomposition.md`](docs/04-decomposition.md) |
 
+## Артефакты домашнего задания №4
+
+| Артефакт | Файл |
+|----------|------|
+| Рендеринг и доставка (модель рендеринга, code splitting, эффект на LCP/TTFB) | [`docs/05-rendering-delivery.md`](docs/05-rendering-delivery.md) |
+
 ## Раскладка репозитория
 
 ```
@@ -44,6 +50,7 @@
     ├── 02-utility-tree.md          дерево полезности и сценарии с метриками
     ├── 03-tradeoffs.md             архитектурные компромиссы
     ├── 04-decomposition.md         декомпозиция на сервисы (DDD)
+    ├── 05-rendering-delivery.md    рендеринг и доставка, эффект на LCP/TTFB
     ├── views/
     │   ├── c4-context.md           C4, уровень Context
     │   └── c4-container.md         C4, уровень Containers
