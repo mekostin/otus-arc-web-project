@@ -40,6 +40,16 @@
 |----------|------|
 | Рендеринг и доставка (модель рендеринга, code splitting, эффект на LCP/TTFB) | [`docs/05-rendering-delivery.md`](docs/05-rendering-delivery.md) |
 
+## Артефакты домашнего задания модуля 2 (фронт-архитектура)
+
+| Артефакт | Файл |
+|----------|------|
+| Фронтенд-архитектура (FSD, рендеринг, monorepo vs microfrontend, CI/CD) | [`docs/06-frontend-architecture.md`](docs/06-frontend-architecture.md) |
+| Рендеринг и доставка (часть B, общая с ДЗ №4) | [`docs/05-rendering-delivery.md`](docs/05-rendering-delivery.md) |
+| ADR: SSR вместо CSR (переиспользуется из ДЗ №2) | [`docs/adr/0001-use-ssr.md`](docs/adr/0001-use-ssr.md) |
+| ADR: Feature-Sliced Design как архитектура фронтенда | [`docs/adr/0002-frontend-fsd.md`](docs/adr/0002-frontend-fsd.md) |
+| ADR: Фронтенд-монолит вместо микрофронтендов | [`docs/adr/0003-frontend-monolith.md`](docs/adr/0003-frontend-monolith.md) |
+
 ## Раскладка репозитория
 
 ```
@@ -51,10 +61,13 @@
     ├── 03-tradeoffs.md             архитектурные компромиссы
     ├── 04-decomposition.md         декомпозиция на сервисы (DDD)
     ├── 05-rendering-delivery.md    рендеринг и доставка, эффект на LCP/TTFB
+    ├── 06-frontend-architecture.md фронт-архитектура (FSD, масштаб, CI/CD)
     ├── views/
     │   ├── c4-context.md           C4, уровень Context
     │   └── c4-container.md         C4, уровень Containers
     └── adr/
         ├── README.md               журнал решений (список ADR)
-        └── 0001-use-ssr.md         SSR вместо CSR
+        ├── 0001-use-ssr.md         SSR вместо CSR
+        ├── 0002-frontend-fsd.md    FSD как архитектура фронтенда
+        └── 0003-frontend-monolith.md  фронтенд-монолит вместо микрофронтендов
 ```
